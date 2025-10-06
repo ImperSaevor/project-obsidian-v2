@@ -1,0 +1,36 @@
+{
+  "extends": "@tsconfig/svelte/tsconfig.json",
+  "compilerOptions": {
+    "ignoreDeprecations": "5.0",
+    "types": [
+      "node",
+      "svelte"
+    ],
+    "baseUrl": ".",
+    "inlineSources": true,
+    "module": "ESNext",
+    "target": "ES2022",
+    "allowJs": true,
+    "moduleResolution": "node",
+    "importHelpers": true,
+    "strict": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitReturns": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
+    "exactOptionalPropertyTypes": true,
+    "isolatedModules": true,
+    "resolveJsonModule": true,
+    "lib": [
+      "DOM",
+      "ES2022",
+    ],
+  },
+  "include": [
+    "**/*.ts",
+    "src/__mocks__/obsidian.ts"
+  ]
+}

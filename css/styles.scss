@@ -1,0 +1,10 @@
+@use "views/board";
+@use "views/gallery";
+
+.workspace-leaf-content[data-type="obsidian-projects"] .view-content {
+  padding: 0;
+}
+
+.sortable-drag {
+  opacity: 0 !important;
+}
