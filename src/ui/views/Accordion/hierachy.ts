@@ -1,6 +1,5 @@
 ﻿import type { DataRecord, Hierarchy, StoryNode, TaskNode, Fields } from "./types";
 import { normalize } from "./status";
-import { log } from "console";
 
 export function kindOf(r: DataRecord): "Epic" | "Story" | "Task" | "SubTask" {
   const raw = normalize(r?.values?.["Projet"] ?? r?.values?.["Type"] ?? r?.values?.["type"]);
