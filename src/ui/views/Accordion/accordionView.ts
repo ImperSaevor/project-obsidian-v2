@@ -1,6 +1,6 @@
 ﻿// src/ui/views/Accordion/accordionView.ts
 import { ProjectView, type ProjectViewProps } from "src/customViewApi";
-import AccordionViewSvelte from "./AccordionViewOneComponent.svelte";
+import AccordionViewSvelte from "./AccordionView.svelte";
 
 export class AccordionView extends ProjectView<any> {
     view?: AccordionViewSvelte | null;

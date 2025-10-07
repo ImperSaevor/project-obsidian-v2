@@ -81,15 +81,17 @@
 <details class="subtasks-wrap">
   <summary>
     <a
-      class="internal-link title story"
+      class="internal-link title_task"
       href="#"
       on:click|preventDefault={() => openRecord(task)}
     >
       {baseNameFrom(task?.values?.["name"])}
     </a>
-    {getChildren().length > 0 ? getChildren().length : 0}
     {#if isDone(task)}<span class="badge done">Done</span>{/if}
-    {getChildren().length > 1 ? "sous‑tâches" : "sous‑tâche"}
+    <span class="chip">
+      {getChildren().length > 0 ? getChildren().length : 0}
+      {getChildren().length > 1 ? "sous‑tâches" : "sous‑tâche"}
+    </span>
   </summary>
   <ul class="subtasks">
     {#each getChildren() as st (st.id)}
@@ -108,16 +110,70 @@
       </li>
     {/each}
   </ul>
-  <button class="btn tiny" on:click={() => onAddSubTask(task)}>+ SubTask</button
-  >
+  <!-- <button class="btn tiny" on:click={() => onAddSubTask(task)}>+ SubTask</button> -->
 </details>
 
 <style>
-  .subtasks-wrap summary {
-    cursor: pointer;
-    user-select: none;
-    margin-top: 6px;
+  .subtasks-wrap {
+    position: relative;
+    border: 1px solid var(--background-modifier-border, #ddd);
+    border-left: 6px solid var(--acc-task, rgb(66, 196, 229));
+    border-radius: 10px;
+    background: color-mix(
+      in srgb,
+      var(--acc-task) 15%,
+      var(--background-primary, #a4a4a4)
+    );
+    margin: 8px;
+    padding: 0.5em;
+    box-shadow:
+      0 1px 0 rgba(0, 0, 0, 0.03),
+      0 2px 10px color-mix(in srgb, var(--acc-task) 8%, transparent);
+    transition:
+      background 0.2s ease,
+      box-shadow 0.2s ease,
+      border-color 0.2s ease;
   }
+
+  .subtasks-wrap summary {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .title_task {
+    padding: 0.5em;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    /* color: var(--acc-epic); */
+    letter-spacing: 0.2px;
+  }
+
+  .title_task::before {
+    content: "";
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--acc-task, var(--color-blue));
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--acc-task) 28%, transparent);
+  }
+
+  /* Focus/hover sur la carte pour la navigabilité */
+  .subtasks-wrap:focus-within,
+  .subtasks-wrap:hover {
+    border-color: color-mix(
+      in srgb,
+      var(--acc-task) 50%,
+      var(--background-modifier-border)
+    );
+    box-shadow:
+      0 1px 0 rgba(0, 0, 0, 0.04),
+      0 8px 22px color-mix(in srgb, var(--acc-task) 18%, transparent);
+  }
+
   .subtasks {
     margin: 6px 0 0 0;
     padding-left: 12px;
@@ -129,6 +185,12 @@
     border-radius: 6px;
     border: 1px dashed var(--background-modifier-border);
     background: color-mix(in srgb, currentColor 8%, transparent);
+  }
+  .chip {
+    background: var(--background-modifier-form-field, #f2f2f2);
+    border-radius: 12px;
+    padding: 0 0.5rem;
+    font-size: 0.8rem;
   }
   .btn.tiny {
     font-size: 12px;

@@ -1,6 +1,6 @@
 ﻿<script lang="ts">
   import EpicItem from "./components/EpicItem.svelte";
-  import Toolbar from "./components/Toolbar.svelte";
+  // import Toolbar from "./components/Toolbar.svelte";
   // import DebugPanel from "./components/DebugPanel.svelte";
   import { buildHierarchy } from "./hierachy";
   import { hierarchyStore } from "./hierarchyStore";
@@ -88,41 +88,36 @@
   async function setStatus(r: DataRecord, label: string) {
     await updateRecord(r, { values: { [FIELDS.status]: label } });
   }
-  function addEpic() {
-    createRecord({ title: "Nouvel epic", values: { [FIELDS.type]: "Epic" } });
-  }
+  // function addEpic() {
+  //   createRecord({ title: "Nouvel epic", values: { [FIELDS.type]: "Epic" } });
+  // }
   const renameRecordInline = (r: DataRecord) => openRecord(r);
   const editRecordInline = (r: DataRecord) => openRecord(r);
   const isDone = (_r: DataRecord) => false;
 </script>
 
-<details class="epic" open>
-  <summary>
-    <!-- <DebugPanel
-      show={true}
-      records={frame.records}
+<div class="accordion">
+  {#each $hierarchyStore?.epics ?? [] as epic (recordId(epic))}
+    <EpicItem
+      {epic}
+      stories={storiesOfEpic(recordId(epic))}
+      tasksDirect={tasksOfEpicDirect(recordId(epic))}
+      {openRecord}
+      {addStory}
+      {addTask}
+      {addSubTask}
+      {setStatus}
+      rename={renameRecordInline}
+      edit={editRecordInline}
       {recordId}
-      {titleOf}
-      typeField={FIELDS.type}
-      parentField={FIELDS.parent}
-    /> -->
-    <Toolbar onAddEpic={addEpic} />
+      {isDone}
+    />
+  {/each}
+</div>
 
-    {#each $hierarchyStore?.epics ?? [] as epic (recordId(epic))}
-      <EpicItem
-        {epic}
-        stories={storiesOfEpic(recordId(epic))}
-        tasksDirect={tasksOfEpicDirect(recordId(epic))}
-        {openRecord}
-        {addStory}
-        {addTask}
-        {addSubTask}
-        {setStatus}
-        rename={renameRecordInline}
-        edit={editRecordInline}
-        {recordId}
-        {isDone}
-      />
-    {/each}
-  </summary>
-</details>
+<style>
+  .accordion {
+    margin: 0;
+    padding: 0.5em;
+  }
+</style>

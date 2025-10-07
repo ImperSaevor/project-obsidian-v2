@@ -23,23 +23,26 @@
   //   console.log(baseNameFrom(epic?.values?.["name"]));
   // });
 
-  $: taskCount = stories.reduce(
-    (acc, s) => acc + tasksDirect.filter((t) => t.storyId === undefined).length,
-    0
-  );
+  // $: taskCount = stories.reduce(
+  //   (acc, s) => acc + tasksDirect.filter((t) => t.storyId === undefined).length,
+  //   0
+  // );
 </script>
 
-<details class="epic" open>
+<details
+  class="epic"
+  style="--done:{stories.length}; --total:{stories.length}"
+  open
+>
   <summary>
-    <span>{taskCount}</span>
     <a
-      class="internal-link title epic"
+      class="internal-link title_epic"
       href="#"
       on:click|preventDefault={() => openRecord(epic)}
     >
       {baseNameFrom(epic?.values?.["name"])}
     </a>
-    <button class="btn tiny" on:click={() => addStory(epic)}>+ Story</button>
+    <!-- <button class="btn tiny" on:click={() => addStory(epic)}>+ Story</button> -->
     <span class="counts">
       <span class="chip">Stories: {stories.length}</span>
       <span class="chip"
@@ -86,72 +89,225 @@
 </details>
 
 <style>
-  .epic {
-    border: 1px solid var(--background-modifier-border, #ddd);
-    border-radius: 6px;
-    margin: 0.5rem 0;
-    background: var(--background-primary, #fff);
-    border-left: 4px solid var(--acc-epic, var(--color-purple));
+  /* Couleurs d’accent (garde tes valeurs) */
+  :root {
+    --acc-epic: var(--color-purple);
+    --acc-story: var(--color-green);
+    --acc-task: var(--color-blue);
   }
-  .summary {
+
+  /* Carte Epic */
+  .epic {
+    position: relative;
+    border: 1px solid var(--background-modifier-border, #ddd);
+    border-left: 6px solid var(--acc-epic, rebeccapurple);
+    border-radius: 10px;
+    background: color-mix(
+      in srgb,
+      var(--acc-epic) 15%,
+      var(--background-primary, #a4a4a4)
+    );
+    margin: 8px 0;
+    box-shadow:
+      0 1px 0 rgba(0, 0, 0, 0.03),
+      0 2px 10px color-mix(in srgb, var(--acc-epic) 8%, transparent);
+    transition:
+      background 0.2s ease,
+      box-shadow 0.2s ease,
+      border-color 0.2s ease;
+  }
+
+  /* Ouvert/fermé (marche si tu utilises <details class="epic">) */
+  .epic[open] {
+    background: color-mix(
+      in srgb,
+      var(--acc-epic) 10%,
+      var(--background-primary)
+    );
+    box-shadow:
+      0 1px 0 rgba(0, 0, 0, 0.04),
+      0 6px 18px color-mix(in srgb, var(--acc-epic) 14%, transparent);
+  }
+
+  /* Bandeau supérieur en grille: Titre | Compteurs | Actions */
+  .epic > summary {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 0.5rem;
+    gap: 10px;
+    padding: 8px 12px;
   }
-  .title.epic {
-    font-weight: 600;
-    color: var(--acc-epic, var(--color-purple));
+
+  /* Titre Epic + pastille */
+  .title_epic {
+    padding: 0.5em;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    /* color: var(--acc-epic); */
+    letter-spacing: 0.2px;
   }
+  .title_epic::before {
+    content: "";
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--acc-epic), var(--color-green);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--acc-epic) 28%, transparent);
+  }
+
+  /* Compteurs alignés à droite, façon “chips” */
   .counts {
     display: inline-flex;
     align-items: center;
-    gap: 0.4rem;
+    gap: 6px;
+    justify-self: end;
   }
   .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 22px;
+    padding: 0 8px;
+    font-size: 12px;
+    line-height: 20px;
     background: var(--background-modifier-form-field, #f2f2f2);
-    border-radius: 12px;
-    padding: 0 0.5rem;
-    font-size: 0.8rem;
+    border: 1px solid var(--background-modifier-border, #ddd);
+    border-radius: 999px;
+    color: var(--text-muted);
   }
+  .chip .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0.6;
+  }
+  .chip.stories {
+    color: color-mix(in srgb, var(--acc-story) 80%, #333);
+  }
+  .chip.tasks {
+    color: color-mix(in srgb, var(--acc-task) 80%, #333);
+  }
+
+  /* Badge de statut éventuel (Done, Blocked, etc.) */
   .badge.done {
     color: #0a7;
     border: 1px solid #0a7;
-    border-radius: 10px;
-    padding: 0 0.25rem;
-    font-size: 0.75rem;
+    border-radius: 8px;
+    padding: 0 6px;
+    font-size: 11px;
+    background: color-mix(in srgb, #0a7 10%, transparent);
   }
+
+  /* Barre de progression (utilise --done et --total sur .epic) */
+  .epic .progress {
+    --pct: calc((var(--done, 0) / max(var(--total, 1), 1)) * 100%);
+    height: 6px;
+    border-radius: 999px;
+    overflow: hidden;
+    margin: 0 12px 8px 12px;
+    background: var(--background-modifier-form-field, #eee);
+    position: relative;
+  }
+  .epic .progress > span {
+    display: block;
+    height: 100%;
+    width: clamp(0%, var(--pct), 100%);
+    background: linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--acc-epic) 85%, #fff),
+      var(--acc-epic)
+    );
+    transition: width 0.25s ease;
+  }
+
+  /* Corps (liste des stories/tasks) */
+  .epic .body {
+    padding: 6px 10px 10px 10px;
+  }
+
+  /* Liste des tâches immédiates de l’Epic (si tu en affiches) */
   .tasks {
     list-style: none;
-    margin: 0.25rem 0.75rem 0.75rem 1.25rem;
+    margin: 4px 10px 10px 22px; /* un peu plus d’indentation */
     padding: 0;
   }
   .tasks li {
-    padding: 0.25rem 0;
+    padding: 4px 0;
     display: flex;
-    gap: 0.5rem;
+    gap: 8px;
     align-items: center;
+    border-bottom: 1px dashed
+      color-mix(
+        in srgb,
+        var(--acc-epic) 10%,
+        var(--background-modifier-border, #ddd)
+      );
   }
+  .tasks li:last-child {
+    border-bottom: none;
+  }
+
   .tasks li .square {
-    width: 0.75rem;
-    height: 0.75rem;
-    border: 1px solid var(--text-muted, #aaa);
-    border-radius: 2px;
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    border: 1px solid
+      color-mix(in srgb, var(--acc-task) 55%, var(--text-muted, #aaa));
+    background: color-mix(in srgb, var(--acc-task) 15%, transparent);
   }
-  .task-title {
-    color: var(--acc-task, var(--color-blue));
-  }
-  .tasks-group-header {
-    margin: 0.25rem 0 -0.25rem 1rem;
-    font-size: 0.85rem;
-    color: var(--text-muted, #666);
+
+  /* Boutons d’action compacts à droite */
+  .actions {
+    justify-self: end;
+    display: inline-flex;
+    gap: 6px;
   }
   .btn.tiny {
     font-size: 12px;
-    padding: 2px 8px;
+    padding: 3px 8px;
     border-radius: 6px;
     border: 1px solid var(--background-modifier-border);
     background: var(--background-modifier-form-field);
+    color: var(--text-normal);
     cursor: pointer;
+  }
+  .btn.tiny:hover {
+    background: color-mix(
+      in srgb,
+      var(--acc-epic) 10%,
+      var(--background-modifier-form-field)
+    );
+    border-color: color-mix(
+      in srgb,
+      var(--acc-epic) 30%,
+      var(--background-modifier-border)
+    );
+  }
+
+  /* Focus/hover sur la carte pour la navigabilité */
+  .epic:focus-within,
+  .epic:hover {
+    border-color: color-mix(
+      in srgb,
+      var(--acc-epic) 50%,
+      var(--background-modifier-border)
+    );
+    box-shadow:
+      0 1px 0 rgba(0, 0, 0, 0.04),
+      0 8px 22px color-mix(in srgb, var(--acc-epic) 18%, transparent);
+  }
+
+  /* Densité compacte si besoin: ajoute .dense sur un parent */
+  .dense .summary {
+    padding: 6px 10px;
+  }
+  .dense .epic .progress {
+    margin: 0 10px 6px;
+  }
+  .dense .tasks li {
+    padding: 2px 0;
   }
 </style>
