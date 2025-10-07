@@ -15,10 +15,11 @@ export type Dict = Record<string, any>;
 export type DataRecord = {
   statusLabel: string;
   title: string;
-  id?: string;
+  id: string;
   name?: string;
   path?: string;
   values?: Dict;
+  __childrenIndex?: Map<string, DataRecord[]>;
 };
 
 export type Kind = "Epic" | "Story" | "Task" | "SubTask";
@@ -34,6 +35,7 @@ export type Hierarchy = {
   epics: DataRecord[];
   stories: StoryNode[];
   tasks: TaskNode[];
+  subtasks: Map<string, DataRecord[]>;
 };
 
 export type Env = {

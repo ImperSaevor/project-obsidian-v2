@@ -32,7 +32,7 @@ export function statusClass(r: DataRecord): string {
   return `status-${statusKeyFrom(r)}`;
 }
 
-export function baseNameFrom(ref: string): string {
+export function baseNameFrom(ref: string | undefined): string {
   if (!ref) return "";
   const m = ref.match(/^\s*\[\[([^\]|#]+)(?:\|([^\]]+))?\]\]\s*$/);
   if (m) return (m[2] ?? m[1] ?? "").trim();

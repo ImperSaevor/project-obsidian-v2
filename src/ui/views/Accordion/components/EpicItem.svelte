@@ -1,6 +1,8 @@
 ﻿<script lang="ts">
+  // import { onMount } from "svelte";
   import type { DataRecord, StoryNode, TaskNode } from "../types";
   import StoryItem from "./StoryItem.svelte";
+  import { baseNameFrom } from "../status";
 
   export let epic: DataRecord;
   export let stories: StoryNode[] = [];
@@ -12,9 +14,14 @@
   export let setStatus: (r: DataRecord, v: string) => void;
   export let rename: (r: DataRecord) => void;
   export let edit: (r: DataRecord) => void;
-  export let childrenOfTask: (taskId: string) => DataRecord[];
   export let recordId: (r: DataRecord | string) => string;
   export let isDone: (r: DataRecord) => boolean = () => false;
+
+  // onMount(() => {
+  //   console.log(epic?.values);
+  //   console.log(epic?.values?.["name"]);
+  //   console.log(baseNameFrom(epic?.values?.["name"]));
+  // });
 
   $: taskCount = stories.reduce(
     (acc, s) => acc + tasksDirect.filter((t) => t.storyId === undefined).length,
@@ -30,10 +37,7 @@
       href="#"
       on:click|preventDefault={() => openRecord(epic)}
     >
-      {epic?.values?.["Title"] ??
-        epic?.values?.["Titre"] ??
-        epic?.name ??
-        epic?.path}
+      {baseNameFrom(epic?.values?.["name"])}
     </a>
     <button class="btn tiny" on:click={() => addStory(epic)}>+ Story</button>
     <span class="counts">
@@ -48,14 +52,12 @@
   {#each stories as s (recordId(s.record))}
     <StoryItem
       story={s.record}
-      tasks={[]}
       {openRecord}
       {addTask}
       {addSubTask}
       {setStatus}
       {rename}
       {edit}
-      {childrenOfTask}
       {recordId}
       {isDone}
     />

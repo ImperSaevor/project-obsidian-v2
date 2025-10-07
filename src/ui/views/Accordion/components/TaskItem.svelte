@@ -1,9 +1,14 @@
 ﻿<script lang="ts">
   import type { DataRecord } from "../types";
-  import { statusClass, STATUS_META, statusKeyFrom } from "../status";
+  import {
+    statusClass,
+    STATUS_META,
+    statusKeyFrom,
+    baseNameFrom,
+  } from "../status";
+  import { hierarchyStore } from "../hierarchyStore";
 
   export let task: DataRecord;
-  export let children: DataRecord[] = [];
   export let openRecord: (r: DataRecord) => void;
   export let onAddSubTask: (task: DataRecord) => void;
   export let setStatus: (r: DataRecord, v: string) => void;
@@ -11,34 +16,90 @@
   export let edit: (r: DataRecord) => void;
   export let isDone: (r: DataRecord) => boolean = () => false;
 
-  // État local non‑persisté pour le <select>
-//   let selectValue: string;
-//   $: selectValue = getStatusLabel(task); // se remet à jour si le record change
+  $: children = $hierarchyStore?.subtasks ?? new Map<string, DataRecord[]>();
 
-//   function onChange(e: Event) {
-//     const v = (e.currentTarget as HTMLSelectElement).value;
-//     selectValue = v; // met à jour l’UI
-//     setStatus(task, v); // demande la mise à jour côté Projects
-//   }
+  function getChildren(): DataRecord[] {
+    const normalizedId = normalizeTaskId(task.id);
+    console.log("Normalized ID:", normalizedId); // Debug
+    console.log("Children keys:", Array.from(children.keys())); // Debug
+
+    // Vérifie si la clé normalisée existe
+    if (children.has(normalizedId)) {
+      console.log("Found with normalized ID");
+      return children.get(normalizedId) ?? [];
+    }
+
+    // Fallback : essaie avec l'ID brut (au cas où)
+    if (children.has(task.id)) {
+      console.log("Found with raw ID");
+      return children.get(task.id) ?? [];
+    }
+
+    console.log("Not found");
+    return [];
+  }
+
+  function normalizeTaskId(taskId: string): string {
+    // Si déjà au format "[[...|...]]", on nettoie juste le .md dans la partie après |
+    if (taskId.startsWith("[[") && taskId.endsWith("]]")) {
+      const parts = taskId.slice(2, -2).split("|"); // Enlève [[ ]] et split
+      if (parts.length === 2) {
+        const [path, fileName] = parts;
+        const cleanedFileName = fileName?.replace(/\.md$/i, ""); // Supprime .md (case-insensitive)
+        return `[[${path}|${cleanedFileName}]]`;
+      }
+      return taskId; // Retourne tel quel si le format est invalide
+    }
+
+    // Cas normal : chemin/nom_fichier.md → [[chemin/nom_fichier|nom_fichier]]
+    const lastSlashIndex = taskId.lastIndexOf("/");
+    if (lastSlashIndex === -1) {
+      // Pas de "/", c'est juste un nom de fichier (ex: "Test2.md")
+      const cleanedId = taskId.replace(/\.md$/i, "");
+      return `[[${cleanedId}|${cleanedId}]]`;
+    }
+
+    // Sépare chemin et nom de fichier
+    const path = taskId;
+    let fileName = taskId.substring(lastSlashIndex + 1);
+    fileName = fileName.replace(/\.md$/i, ""); // Supprime .md
+
+    return `[[${path}|${fileName}]]`;
+  }
+
+  // État local non‑persisté pour le <select>
+  //   let selectValue: string;
+  //   $: selectValue = getStatusLabel(task); // se remet à jour si le record change
+
+  //   function onChange(e: Event) {
+  //     const v = (e.currentTarget as HTMLSelectElement).value;
+  //     selectValue = v; // met à jour l’UI
+  //     setStatus(task, v); // demande la mise à jour côté Projects
+  //   }
 </script>
 
 <details class="subtasks-wrap">
-  <summary
-    >{children.length}
-    {children.length > 1 ? "sous‑tâches" : "sous‑tâche"}</summary
-  >
+  <summary>
+    <a
+      class="internal-link title story"
+      href="#"
+      on:click|preventDefault={() => openRecord(task)}
+    >
+      {baseNameFrom(task?.values?.["name"])}
+    </a>
+    {getChildren().length > 0 ? getChildren().length : 0}
+    {#if isDone(task)}<span class="badge done">Done</span>{/if}
+    {getChildren().length > 1 ? "sous‑tâches" : "sous‑tâche"}
+  </summary>
   <ul class="subtasks">
-    {#each children as st (st.id)}
+    {#each getChildren() as st (st.id)}
       <li class="subtask">
         <a
           href="#"
           class="internal-link"
           on:click|preventDefault={() => openRecord(st)}
         >
-          {st?.values?.["Title"] ??
-            st?.values?.["Titre"] ??
-            st?.name ??
-            st?.path}
+          {baseNameFrom(st?.values?.["name"])}
         </a>
         <span
           class={"status-dot " + statusClass(st)}
