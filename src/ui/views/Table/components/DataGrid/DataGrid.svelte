@@ -16,6 +16,7 @@
   import GridCellGroup from "./GridCellGroup.svelte";
   import { Button, Icon } from "obsidian-svelte";
   import GridHeader from "./GridHeader/GridHeader.svelte";
+  import { log } from "console";
 
   export let columns: GridColDef[];
   export let rows: GridRowProps[];
@@ -206,6 +207,7 @@
       onRowMenu={(rowId, row) => createRowMenu(rowId, row)}
       onCellMenu={(rowId, column) => createCellMenu(rowId, row, column)}
       on:navigate={({ detail: navinfo }) => {
+        log("navigate", navinfo);
         const colOffset = 1;
         const rowOffset = 3;
 

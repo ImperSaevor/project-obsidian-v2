@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { log } from "console";
   import { MarkdownRenderer } from "obsidian";
   import type {
     DataField,
@@ -38,6 +39,7 @@
       const newLeaf = event.button === 1 || event.ctrlKey || event.metaKey;
 
       if (href) {
+        log("openLinkText", href, sourcePath, newLeaf);
         $app.workspace.openLinkText(href, sourcePath, newLeaf);
       }
     }
