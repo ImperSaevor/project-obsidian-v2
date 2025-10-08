@@ -1,21 +1,83 @@
 ﻿<script lang="ts">
   // import { onMount } from "svelte";
-  import type { DataRecord, StoryNode, TaskNode } from "../types";
+  import type { StoryNode, TaskNode } from "../types";
   import StoryItem from "./StoryItem.svelte";
   import { baseNameFrom } from "../status";
+  import type { DataFrame, DataRecord } from "src/lib/dataframe/dataframe";
+  import { CreateNoteModal } from "src/ui/modals/createNoteModal";
+  import { createDataRecord } from "src/lib/dataApi";
+  import type { ViewApi } from "src/lib/viewApi";
+  import type { ProjectDefinition } from "src/settings/settings";
+  import { app } from "src/lib/stores/obsidian";
+  import { cleanWikiLink, DataFieldName, toWikiLink } from "../hierachy";
+  import type { OnRecordClick } from "../../Board/components/Board/types";
+
+  export let api: ViewApi;
+  export let project: ProjectDefinition;
+  export let frame: DataFrame;
+
+  $: ({ fields, records } = frame);
 
   export let epic: DataRecord;
   export let stories: StoryNode[] = [];
   export let tasksDirect: TaskNode[] = [];
   export let openRecord: (r: DataRecord) => void;
-  export let addStory: (epic: DataRecord) => void;
-  export let addTask: (story: DataRecord) => void;
-  export let addSubTask: (task: DataRecord) => void;
+  // export let addStory: (epic: DataRecord) => void;
+  // export let addTask: (story: DataRecord) => void;
+  // export let addSubTask: (task: DataRecord) => void;
+  export let onRecordClick: OnRecordClick;
   export let setStatus: (r: DataRecord, v: string) => void;
   export let rename: (r: DataRecord) => void;
   export let edit: (r: DataRecord) => void;
   export let recordId: (r: DataRecord | string) => string;
-  export let isDone: (r: DataRecord) => boolean = () => false;
+
+  function isDone() {
+    return (
+      stories.every((s) => s.record?.values?.["Status"] === "Terminé") &&
+      stories.length > 0
+    );
+  }
+
+  function isInProgress() {
+    return (
+      stories.some((s) => s.record?.values?.["Status"] === "En cours") &&
+      stories.length > 0
+    );
+  }
+
+  function isInTodo() {
+    return (
+      stories.some((s) => s.record?.values?.["Status"] === "À faire") &&
+      stories.length > 0
+    );
+  }
+
+  function isInBugs() {
+    return (
+      stories.some((s) => s.record?.values?.["Status"] === "Bugs") &&
+      stories.length > 0
+    );
+  }
+
+  function isInBacklog() {
+    return (
+      stories.some((s) => s.record?.values?.["Status"] === "Backlog") &&
+      stories.length > 0
+    );
+  }
+
+  const addStory = async (args: any) => {
+    new CreateNoteModal($app, project, (name, templatePath, project) => {
+      api.addRecord(
+        createDataRecord(name, project, {
+          [DataFieldName.Project]: "Story",
+          [DataFieldName.Parent]: cleanWikiLink(toWikiLink(epic.id)),
+        }),
+        fields,
+        templatePath
+      );
+    }).open();
+  };
 
   // onMount(() => {
   //   console.log(epic?.values);
@@ -39,30 +101,43 @@
       class="internal-link title_epic"
       href="#"
       on:click|preventDefault={() => openRecord(epic)}
+      on:click={() => onRecordClick(epic)}
     >
-      {baseNameFrom(epic?.values?.["name"])}
+      {baseNameFrom(epic?.values?.["name"]?.toString() ?? "")}
     </a>
-    <!-- <button class="btn tiny" on:click={() => addStory(epic)}>+ Story</button> -->
+    <button class="btn tiny" on:click={() => addStory(epic)}>+ Story</button>
     <span class="counts">
+      {#if isDone()}
+        <span class="badge done">Done</span>
+      {:else if isInProgress()}
+        <span class="badge inProgress">In Progress</span>
+      {:else if isInBugs()}
+        <span class="badge bugs">Bugs</span>
+      {:else if isInBacklog()}
+        <span class="badge backlog">Backlog</span>
+      {:else if isInTodo()}
+        <span class="badge todo">To Do</span>
+      {/if}
       <span class="chip">Stories: {stories.length}</span>
       <span class="chip"
         >Tasks: {stories.reduce((n, s) => n + 0, 0) + tasksDirect.length}</span
       >
-      {#if isDone(epic)}<span class="badge done">Done</span>{/if}
+      <!-- <span class="badge done">Done</span> -->
     </span>
   </summary>
 
   {#each stories as s (recordId(s.record))}
     <StoryItem
       story={s.record}
+      onRecordClick={onRecordClick}
       {openRecord}
-      {addTask}
-      {addSubTask}
       {setStatus}
       {rename}
       {edit}
       {recordId}
-      {isDone}
+      {api}
+      {project}
+      {frame}
     />
   {/each}
 
@@ -79,8 +154,8 @@
           >
             {t.record?.values?.["Title"] ??
               t.record?.values?.["Titre"] ??
-              t.record?.name ??
-              t.record?.path}
+              t.record?.values?.["name"] ??
+              t.record?.values?.["path"]}
           </a>
         </li>
       {/each}
@@ -192,6 +267,24 @@
   }
 
   /* Badge de statut éventuel (Done, Blocked, etc.) */
+  .badge.backlog {
+    color: rgb(0, 174, 255);
+    border: 1px solid rgb(0, 174, 255);
+    border-radius: 8px;
+    padding: 0 6px;
+    font-size: 11px;
+    background: color-mix(in srgb, rgb(0, 174, 255) 10%, transparent);
+  }
+
+  .badge.todo {
+    color: rgb(140, 140, 140);
+    border: 1px solid rgb(140, 140, 140);
+    border-radius: 8px;
+    padding: 0 6px;
+    font-size: 11px;
+    background: color-mix(in srgb, rgb(140, 140, 140) 10%, transparent);
+  }
+
   .badge.done {
     color: #0a7;
     border: 1px solid #0a7;
@@ -199,6 +292,42 @@
     padding: 0 6px;
     font-size: 11px;
     background: color-mix(in srgb, #0a7 10%, transparent);
+  }
+
+  .badge.inProgress {
+    color:
+      rgb(170, 156, 0) 170,
+      133,
+      0;
+    border:
+      1px solid rgb(170, 156, 0) 170,
+      133,
+      0;
+    border-radius: 8px;
+    padding: 0 6px;
+    font-size: 11px;
+    background: color-mix(
+      in srgb,
+      rgb(170, 156, 0) 170,
+      133,
+      0 10%,
+      transparent
+    );
+  }
+
+  .badge.inProgress {
+    color:
+      rgb(170, 0, 0) 170,
+      133,
+      0;
+    border:
+      1px solid rgb(170, 0, 0) 170,
+      133,
+      0;
+    border-radius: 8px;
+    padding: 0 6px;
+    font-size: 11px;
+    background: color-mix(in srgb, rgb(170, 0, 0) 170, 133, 0 10%, transparent);
   }
 
   /* Barre de progression (utilise --done et --total sur .epic) */

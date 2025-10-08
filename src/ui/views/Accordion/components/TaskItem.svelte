@@ -1,5 +1,4 @@
 ﻿<script lang="ts">
-  import type { DataRecord } from "../types";
   import {
     statusClass,
     STATUS_META,
@@ -7,35 +6,47 @@
     baseNameFrom,
   } from "../status";
   import { hierarchyStore } from "../hierarchyStore";
+  import type { DataFrame, DataRecord } from "src/lib/dataframe/dataframe";
+  import type { ViewApi } from "src/lib/viewApi";
+  import type { ProjectDefinition } from "src/settings/settings";
+  import { app } from "src/lib/stores/obsidian";
+  import { CreateNoteModal } from "src/ui/modals/createNoteModal";
+  import { createDataRecord } from "src/lib/dataApi";
+  import { cleanWikiLink, DataFieldName, toWikiLink } from "../hierachy";
+
+  export let api: ViewApi;
+  export let project: ProjectDefinition;
+  export let frame: DataFrame;
+
+  $: ({ fields, records } = frame);
 
   export let task: DataRecord;
   export let openRecord: (r: DataRecord) => void;
-  export let onAddSubTask: (task: DataRecord) => void;
+  // export let onAddSubTask: (task: DataRecord) => void;
   export let setStatus: (r: DataRecord, v: string) => void;
   export let rename: (r: DataRecord, newName: string) => void;
   export let edit: (r: DataRecord) => void;
-  export let isDone: (r: DataRecord) => boolean = () => false;
 
   $: children = $hierarchyStore?.subtasks ?? new Map<string, DataRecord[]>();
 
   function getChildren(): DataRecord[] {
     const normalizedId = normalizeTaskId(task.id);
-    console.log("Normalized ID:", normalizedId); // Debug
-    console.log("Children keys:", Array.from(children.keys())); // Debug
+    // console.log("Normalized ID:", normalizedId); // Debug
+    // console.log("Children keys:", Array.from(children.keys())); // Debug
 
     // Vérifie si la clé normalisée existe
     if (children.has(normalizedId)) {
-      console.log("Found with normalized ID");
+      // console.log("Found with normalized ID");
       return children.get(normalizedId) ?? [];
     }
 
     // Fallback : essaie avec l'ID brut (au cas où)
     if (children.has(task.id)) {
-      console.log("Found with raw ID");
+      // console.log("Found with raw ID");
       return children.get(task.id) ?? [];
     }
 
-    console.log("Not found");
+    // console.log("Not found");
     return [];
   }
 
@@ -67,6 +78,52 @@
     return `[[${path}|${fileName}]]`;
   }
 
+  function isDone() {
+    // if (task.length > 0) {
+    //   console.log(stories);
+
+    //   console.log(
+    //     "Checking Done for stories with every: ",
+    //     stories.every((s) => s.record?.values?.["Status"] === "Terminé")
+    //   );
+    //   console.log(
+    //     "Checking Done for stories with some: ",
+    //     stories.some((s) => s.record?.values?.["Status"] === "Terminé")
+    //   );
+    // }
+
+    return task?.values?.["Status"] === "Terminé";
+  }
+
+  function isInProgress() {
+    return task?.values?.["Status"] === "En cours";
+  }
+
+  function isInTodo() {
+    return task?.values?.["Status"] === "À faire";
+  }
+
+  function isInBugs() {
+    return task?.values?.["Status"] === "Bugs";
+  }
+
+  function isInBacklog() {
+    return task?.values?.["Status"] === "Backlog";
+  }
+
+  const addSubTask = async (args: any) => {
+    new CreateNoteModal($app, project, (name, templatePath, project) => {
+      api.addRecord(
+        createDataRecord(name, project, {
+          [DataFieldName.Project]: "SubTask",
+          [DataFieldName.Parent]: cleanWikiLink(toWikiLink(task.id)),
+        }),
+        fields,
+        templatePath
+      );
+    }).open();
+  };
+
   // État local non‑persisté pour le <select>
   //   let selectValue: string;
   //   $: selectValue = getStatusLabel(task); // se remet à jour si le record change
@@ -85,12 +142,29 @@
       href="#"
       on:click|preventDefault={() => openRecord(task)}
     >
-      {baseNameFrom(task?.values?.["name"])}
+      {baseNameFrom(task?.values?.["name"]?.toString() ?? "")}
     </a>
-    {#if isDone(task)}<span class="badge done">Done</span>{/if}
-    <span class="chip">
-      {getChildren().length > 0 ? getChildren().length : 0}
-      {getChildren().length > 1 ? "sous‑tâches" : "sous‑tâche"}
+    <span class="counts">
+      <button
+        class="btn tiny"
+        title="Ajouter une sous tâche"
+        on:click|stopPropagation={() => addSubTask(task)}>+ SubTask</button
+      >
+      {#if isDone()}
+        <span class="badge done">Done</span>
+      {:else if isInProgress()}
+        <span class="badge inProgress">In Progress</span>
+      {:else if isInBugs()}
+        <span class="badge bugs">Bugs</span>
+      {:else if isInBacklog()}
+        <span class="badge backlog">Backlog</span>
+      {:else if isInTodo()}
+        <span class="badge todo">To Do</span>
+      {/if}
+      <span class="chip">
+        {getChildren().length > 0 ? getChildren().length : 0}
+        {getChildren().length > 1 ? "sous‑tâches" : "sous‑tâche"}
+      </span>
     </span>
   </summary>
   <ul class="subtasks">
@@ -101,7 +175,7 @@
           class="internal-link"
           on:click|preventDefault={() => openRecord(st)}
         >
-          {baseNameFrom(st?.values?.["name"])}
+          {baseNameFrom(st?.values?.["name"]?.toString() ?? "")}
         </a>
         <span
           class={"status-dot " + statusClass(st)}
@@ -191,6 +265,51 @@
     border-radius: 12px;
     padding: 0 0.5rem;
     font-size: 0.8rem;
+  }
+  /* Badge de statut éventuel (Done, Blocked, etc.) */
+  .badge.backlog {
+    color: rgb(0, 174, 255);
+    border: 1px solid rgb(0, 174, 255);
+    border-radius: 8px;
+    padding: 0 6px;
+    font-size: 11px;
+    background: color-mix(in srgb, rgb(0, 174, 255) 10%, transparent);
+  }
+  .badge.todo {
+    color: rgb(140, 140, 140);
+    border: 1px solid rgb(140, 140, 140);
+    border-radius: 8px;
+    padding: 0 6px;
+    font-size: 11px;
+    background: color-mix(in srgb, rgb(140, 140, 140) 10%, transparent);
+  }
+  .badge.done {
+    color: #0a7;
+    border: 1px solid #0a7;
+    border-radius: 8px;
+    padding: 0 6px;
+    font-size: 11px;
+    background: color-mix(in srgb, #0a7 10%, transparent);
+  }
+  .badge.inProgress {
+    color:
+      rgb(170, 156, 0) 170,
+      133,
+      0;
+    border:
+      1px solid rgb(170, 156, 0) 170,
+      133,
+      0;
+    border-radius: 8px;
+    padding: 0 6px;
+    font-size: 11px;
+    background: color-mix(
+      in srgb,
+      rgb(170, 156, 0) 170,
+      133,
+      0 10%,
+      transparent
+    );
   }
   .btn.tiny {
     font-size: 12px;

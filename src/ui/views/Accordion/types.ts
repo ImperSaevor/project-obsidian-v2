@@ -1,4 +1,6 @@
-﻿export type AccordionConfig = {
+﻿import type { DataRecord } from "src/lib/dataframe/dataframe";
+
+export type AccordionConfig = {
   projetField: "Projet",
   parentField: "Parent",
   dependsOnField: "Dépendances", // si tu l’utilises
@@ -12,15 +14,15 @@
 // Types minimaux compatibles avec ton code actuel
 export type Dict = Record<string, any>;
 
-export type DataRecord = {
-  statusLabel: string;
-  title: string;
-  id: string;
-  name?: string;
-  path?: string;
-  values?: Dict;
-  __childrenIndex?: Map<string, DataRecord[]>;
-};
+// export type DataRecord = {
+//   statusLabel: string;
+//   title: string;
+//   id: string;
+//   name?: string;
+//   path?: string;
+//   values?: Dict;
+//   __childrenIndex?: Map<string, DataRecord[]>;
+// };
 
 export type Kind = "Epic" | "Story" | "Task" | "SubTask";
 

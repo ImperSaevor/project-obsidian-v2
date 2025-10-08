@@ -1,4 +1,4 @@
-﻿import type { DataRecord } from "./types";
+﻿import type { DataRecord } from "src/lib/dataframe/dataframe";
 
 export const STATUS = ["Backlog", "À faire", "En cours", "Terminé", "Bugs"] as const;
 export type StatusLabel = typeof STATUS[number];
@@ -32,7 +32,7 @@ export function statusClass(r: DataRecord): string {
   return `status-${statusKeyFrom(r)}`;
 }
 
-export function baseNameFrom(ref: string | undefined): string {
+export function baseNameFrom(ref: string | null): string {
   if (!ref) return "";
   const m = ref.match(/^\s*\[\[([^\]|#]+)(?:\|([^\]]+))?\]\]\s*$/);
   if (m) return (m[2] ?? m[1] ?? "").trim();
