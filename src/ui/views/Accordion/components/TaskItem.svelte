@@ -12,7 +12,8 @@
   import { app } from "src/lib/stores/obsidian";
   import { CreateNoteModal } from "src/ui/modals/createNoteModal";
   import { createDataRecord } from "src/lib/dataApi";
-  import { cleanWikiLink, DataFieldName, toWikiLink } from "../hierachy";
+  import { DataFieldName, pathToWikilink } from "../hierachy";
+  import { handleHoverLink } from "../../helpers";
 
   export let api: ViewApi;
   export let project: ProjectDefinition;
@@ -30,52 +31,24 @@
   $: children = $hierarchyStore?.subtasks ?? new Map<string, DataRecord[]>();
 
   function getChildren(): DataRecord[] {
-    const normalizedId = normalizeTaskId(task.id);
-    // console.log("Normalized ID:", normalizedId); // Debug
-    // console.log("Children keys:", Array.from(children.keys())); // Debug
+    const normalizedId = pathToWikilink(task.id);
+    console.log("Normalized ID:", normalizedId); // Debug
+    console.log("Children keys:", Array.from(children.keys())); // Debug
 
     // Vérifie si la clé normalisée existe
     if (children.has(normalizedId)) {
-      // console.log("Found with normalized ID");
+      console.log("Found with normalized ID");
       return children.get(normalizedId) ?? [];
     }
 
     // Fallback : essaie avec l'ID brut (au cas où)
     if (children.has(task.id)) {
-      // console.log("Found with raw ID");
+      console.log("Found with raw ID");
       return children.get(task.id) ?? [];
     }
 
     // console.log("Not found");
     return [];
-  }
-
-  function normalizeTaskId(taskId: string): string {
-    // Si déjà au format "[[...|...]]", on nettoie juste le .md dans la partie après |
-    if (taskId.startsWith("[[") && taskId.endsWith("]]")) {
-      const parts = taskId.slice(2, -2).split("|"); // Enlève [[ ]] et split
-      if (parts.length === 2) {
-        const [path, fileName] = parts;
-        const cleanedFileName = fileName?.replace(/\.md$/i, ""); // Supprime .md (case-insensitive)
-        return `[[${path}|${cleanedFileName}]]`;
-      }
-      return taskId; // Retourne tel quel si le format est invalide
-    }
-
-    // Cas normal : chemin/nom_fichier.md → [[chemin/nom_fichier|nom_fichier]]
-    const lastSlashIndex = taskId.lastIndexOf("/");
-    if (lastSlashIndex === -1) {
-      // Pas de "/", c'est juste un nom de fichier (ex: "Test2.md")
-      const cleanedId = taskId.replace(/\.md$/i, "");
-      return `[[${cleanedId}|${cleanedId}]]`;
-    }
-
-    // Sépare chemin et nom de fichier
-    const path = taskId;
-    let fileName = taskId.substring(lastSlashIndex + 1);
-    fileName = fileName.replace(/\.md$/i, ""); // Supprime .md
-
-    return `[[${path}|${fileName}]]`;
   }
 
   function isDone() {
@@ -112,44 +85,33 @@
   }
 
   const addSubTask = async (args: any) => {
+    console.log("Task id", task.id);
+    console.log("Wiki Task id", pathToWikilink(task.id));
+
     new CreateNoteModal($app, project, (name, templatePath, project) => {
       api.addRecord(
         createDataRecord(name, project, {
           [DataFieldName.Project]: "SubTask",
-          [DataFieldName.Parent]: cleanWikiLink(toWikiLink(task.id)),
+          [DataFieldName.Parent]: pathToWikilink(task.id),
         }),
         fields,
         templatePath
       );
     }).open();
   };
-
-  // État local non‑persisté pour le <select>
-  //   let selectValue: string;
-  //   $: selectValue = getStatusLabel(task); // se remet à jour si le record change
-
-  //   function onChange(e: Event) {
-  //     const v = (e.currentTarget as HTMLSelectElement).value;
-  //     selectValue = v; // met à jour l’UI
-  //     setStatus(task, v); // demande la mise à jour côté Projects
-  //   }
 </script>
 
 <details class="subtasks-wrap">
   <summary>
     <a
       class="internal-link title_task"
-      href="#"
+      href={task.id}
       on:click|preventDefault={() => openRecord(task)}
+      on:mouseover={(event) => handleHoverLink(event, task.id)}
     >
       {baseNameFrom(task?.values?.["name"]?.toString() ?? "")}
     </a>
     <span class="counts">
-      <button
-        class="btn tiny"
-        title="Ajouter une sous tâche"
-        on:click|stopPropagation={() => addSubTask(task)}>+ SubTask</button
-      >
       {#if isDone()}
         <span class="badge done">Done</span>
       {:else if isInProgress()}
@@ -165,15 +127,21 @@
         {getChildren().length > 0 ? getChildren().length : 0}
         {getChildren().length > 1 ? "sous‑tâches" : "sous‑tâche"}
       </span>
+      <button
+        class="btn tiny"
+        title="Ajouter une sous tâche"
+        on:click|stopPropagation={() => addSubTask(task)}>+ SubTask</button
+      >
     </span>
   </summary>
   <ul class="subtasks">
     {#each getChildren() as st (st.id)}
       <li class="subtask">
         <a
-          href="#"
+          href={st.id}
           class="internal-link"
           on:click|preventDefault={() => openRecord(st)}
+          on:mouseover={(event) => handleHoverLink(event, st.id)}
         >
           {baseNameFrom(st?.values?.["name"]?.toString() ?? "")}
         </a>

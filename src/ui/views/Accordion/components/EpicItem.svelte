@@ -9,12 +9,14 @@
   import type { ViewApi } from "src/lib/viewApi";
   import type { ProjectDefinition } from "src/settings/settings";
   import { app } from "src/lib/stores/obsidian";
-  import { cleanWikiLink, DataFieldName, toWikiLink } from "../hierachy";
+  import { cleanWikiLink, DataFieldName, pathToWikilink, toWikiLink } from "../hierachy";
   import type { OnRecordClick } from "../../Board/components/Board/types";
+  import { handleHoverLink } from "../../helpers";
 
   export let api: ViewApi;
   export let project: ProjectDefinition;
   export let frame: DataFrame;
+  // export let value: Optional<DataValue>;
 
   $: ({ fields, records } = frame);
 
@@ -71,24 +73,13 @@
       api.addRecord(
         createDataRecord(name, project, {
           [DataFieldName.Project]: "Story",
-          [DataFieldName.Parent]: cleanWikiLink(toWikiLink(epic.id)),
+          [DataFieldName.Parent]: pathToWikilink(epic.id),
         }),
         fields,
         templatePath
       );
     }).open();
   };
-
-  // onMount(() => {
-  //   console.log(epic?.values);
-  //   console.log(epic?.values?.["name"]);
-  //   console.log(baseNameFrom(epic?.values?.["name"]));
-  // });
-
-  // $: taskCount = stories.reduce(
-  //   (acc, s) => acc + tasksDirect.filter((t) => t.storyId === undefined).length,
-  //   0
-  // );
 </script>
 
 <details
@@ -99,29 +90,27 @@
   <summary>
     <a
       class="internal-link title_epic"
-      href="#"
+      href={epic.id}
       on:click|preventDefault={() => openRecord(epic)}
-      on:click={() => onRecordClick(epic)}
+      on:mouseover={(event) => handleHoverLink(event, epic.id)}
     >
       {baseNameFrom(epic?.values?.["name"]?.toString() ?? "")}
     </a>
-    <button class="btn tiny" on:click={() => addStory(epic)}>+ Story</button>
     <span class="counts">
       {#if isDone()}
-        <span class="badge done">Done</span>
+      <span class="badge done">Done</span>
       {:else if isInProgress()}
-        <span class="badge inProgress">In Progress</span>
+      <span class="badge inProgress">In Progress</span>
       {:else if isInBugs()}
-        <span class="badge bugs">Bugs</span>
+      <span class="badge bugs">Bugs</span>
       {:else if isInBacklog()}
-        <span class="badge backlog">Backlog</span>
+      <span class="badge backlog">Backlog</span>
       {:else if isInTodo()}
-        <span class="badge todo">To Do</span>
+      <span class="badge todo">To Do</span>
       {/if}
       <span class="chip">Stories: {stories.length}</span>
-      <span class="chip"
-        >Tasks: {stories.reduce((n, s) => n + 0, 0) + tasksDirect.length}</span
-      >
+      <span class="chip">Tasks: {stories.reduce((n, s) => n + 0, 0) + tasksDirect.length}</span>
+      <button class="btn tiny" on:click={() => addStory(epic)}>+ Story</button>
       <!-- <span class="badge done">Done</span> -->
     </span>
   </summary>
@@ -129,7 +118,7 @@
   {#each stories as s (recordId(s.record))}
     <StoryItem
       story={s.record}
-      onRecordClick={onRecordClick}
+      {onRecordClick}
       {openRecord}
       {setStatus}
       {rename}

@@ -80,17 +80,13 @@ export function menuOnContextMenu(event: MouseEvent, menu: Menu): void {
 }
 
 export function handleHoverLink(event: MouseEvent, sourcePath: string) {
-  console.log("handleHoverLink", event, sourcePath);
-  
   const targetEl = event.target as HTMLDivElement;
   const anchor =
     targetEl.tagName === "A" ? targetEl : targetEl.querySelector("a");
   if (!anchor || !anchor.hasClass("internal-link")) return;
-
   const href = anchor.getAttr("href");
   const file =
     href && get(app).metadataCache.getFirstLinkpathDest(href, sourcePath);
-
   if (file instanceof TFile) {
     get(app).workspace.trigger("hover-link", {
       event,

@@ -24,6 +24,7 @@
   export let frame: DataFrame;
 
   $: ({ fields, records } = frame);
+  
 
   // Helpers “plats”
   const recordId = (r: DataRecord | string) => {
@@ -86,12 +87,12 @@
 
   function storiesOfEpic(epicId: string): StoryNode[] {
     const hierarchy = $hierarchyStore; // Accède à la valeur réactive
-    console.log("epic Id: ", epicId);
-    console.log("Stories: ", hierarchy?.stories);
-    console.log(
-      "Stories filtered: ",
-      hierarchy?.stories.filter((s) => s.epicId && s.epicId === epicId)
-    );
+    // console.log("epic Id: ", epicId);
+    // console.log("Stories: ", hierarchy?.stories);
+    // console.log(
+    //   "Stories filtered: ",
+    //   hierarchy?.stories.filter((s) => s.epicId && s.epicId === epicId)
+    // );
 
     if (!hierarchy) return []; // Gère le cas null
     return hierarchy.stories.filter((s) => s.epicId && s.epicId === epicId);

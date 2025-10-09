@@ -97,7 +97,16 @@ export function buildHierarchy(
   const parentToChildren = new Map<string, DataRecord[]>();
   for (const st of subtasks) {
     const pref = String(st?.values?.[DataFieldName.Parent] ?? "");
-    const key = env.resolveRecordId(pref);
+    console.log("Subtask parent raw: ", pref);
+
+    let key = env.resolveRecordId(pref);
+    console.log("Resolved key for subtask: ", key);
+
+    if (key.endsWith("]]]]")) {
+      key = key.replace("]]]]", "]]");
+      console.log("Final key for subtask: ", key);
+    }
+
     const arr = parentToChildren.get(key) ?? [];
     arr.push(st);
     parentToChildren.set(key, arr);
@@ -135,22 +144,37 @@ export function toWikiLink(s: string): string {
 }
 export function cleanWikiLink(input: string): string {
   // 1. Supprime les crochets existants (si l'entrée est déjà un wikilink)
-  console.log("Input to cleanWikiLink: ", input);
-  
+  // console.log("Input to cleanWikiLink: ", input);
+
   const withoutBrackets = input.replace(/^\[\[|\]\]$/, "");
-  console.log("Without brackets: ", withoutBrackets);
+  // console.log("Without brackets: ", withoutBrackets);
 
   // 2. Sépare le nom du fichier et l'alias (si "|" est présent)
   const [filePart] = withoutBrackets.split("|");
-  console.log("File part: ", filePart);
+  // console.log("File part: ", filePart);
 
   // 3. Supprime l'extension .md (ou .markdown, case-insensitive)
   const withoutExtension = filePart?.replace(/\.(md|markdown)$/i, "");
   console.log("Without extension: ", withoutExtension);
   console.log("Final result: ", `[[${withoutExtension}]]`);
-  
+
+  let finalResult = `[[${withoutExtension}]]`;
+  if (finalResult.endsWith("]]]]")) finalResult = finalResult.replace("]]]]", "]]");
+  console.log("Final result after check: ", finalResult);
+
   // 4. Retourne le résultat entre doubles crochets
-  return `[[${withoutExtension}]]`;
+  return finalResult;
+}
+export function pathToWikilink(mdPath: string): string {
+  // Supprime l'extension .md si présente
+  const withoutExtension = mdPath.replace(/\.md$/, '');
+
+  // Divise le chemin par '/' et prend le dernier élément
+  const parts = withoutExtension.split('/');
+  const lastPart = parts[parts.length - 1];
+
+  // Retourne le résultat entre doubles crochets
+  return `[[${lastPart}]]`;
 }
 function firstRef(v: any): string | undefined {
   const arr = asArray(v);

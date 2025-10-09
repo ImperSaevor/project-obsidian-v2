@@ -6,10 +6,11 @@
   import type { OnRecordClick } from "../../Board/components/Board/types";
   import { CreateNoteModal } from "src/ui/modals/createNoteModal";
   import { createDataRecord } from "src/lib/dataApi";
-  import { cleanWikiLink, DataFieldName, toWikiLink } from "../hierachy";
+  import { DataFieldName, pathToWikilink } from "../hierachy";
   import type { ProjectDefinition } from "src/settings/settings";
   import type { ViewApi } from "src/lib/viewApi";
   import { app } from "src/lib/stores/obsidian";
+  import { handleHoverLink } from "../../helpers";
 
   export let api: ViewApi;
   export let project: ProjectDefinition;
@@ -164,7 +165,7 @@
       api.addRecord(
         createDataRecord(name, project, {
           [DataFieldName.Project]: "Task",
-          [DataFieldName.Parent]: cleanWikiLink(toWikiLink(story.id)),
+          [DataFieldName.Parent]: pathToWikilink(story.id),
         }),
         fields,
         templatePath
@@ -181,9 +182,9 @@
   <summary>
     <a
       class="internal-link title_story"
-      href="#"
+      href={story.id}
       on:click|preventDefault={() => openRecord(story)}
-      on:click={() => onRecordClick(story)}
+      on:mouseover={(event) => handleHoverLink(event, story.id)}
     >
       {baseNameFrom(story?.values?.["name"]?.toString() ?? "")}
     </a>
@@ -209,12 +210,7 @@
       >
       <button
         class="icon"
-        title="Modifier"
-        on:click|stopPropagation={() => edit(story)}>✏️</button
-      >
-      <button
-        class="icon"
-        title="Renommer"
+        title="Supprimer"
         on:click|stopPropagation={() => rename(story)}>📝</button
       >
     </span>
@@ -361,7 +357,7 @@
       transparent
     );
   }
-  .badge.inProgress {
+  .badge.bugs {
     color:
       rgb(170, 0, 0) 170,
       133,
@@ -373,7 +369,13 @@
     border-radius: 8px;
     padding: 0 6px;
     font-size: 11px;
-    background: color-mix(in srgb, rgb(170, 0, 0) 170, 133, 0 10%, transparent);
+    background: color-mix(
+      in srgb,
+      rgb(170, 0, 0) 170,
+      133,
+      0 10%,
+      transparent
+    );
   }
 
   .tasks {
