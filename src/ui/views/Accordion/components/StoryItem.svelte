@@ -338,44 +338,20 @@
     background: color-mix(in srgb, #0a7 10%, transparent);
   }
   .badge.inProgress {
-    color:
-      rgb(170, 156, 0) 170,
-      133,
-      0;
-    border:
-      1px solid rgb(170, 156, 0) 170,
-      133,
-      0;
+    color: rgb(232, 232, 0);
+    border: 1px solid rgb(232, 232, 0);
     border-radius: 8px;
     padding: 0 6px;
     font-size: 11px;
-    background: color-mix(
-      in srgb,
-      rgb(170, 156, 0) 170,
-      133,
-      0 10%,
-      transparent
-    );
+    background: color-mix(in srgb, rgb(232, 232, 0) 10%, transparent);
   }
   .badge.bugs {
-    color:
-      rgb(170, 0, 0) 170,
-      133,
-      0;
-    border:
-      1px solid rgb(170, 0, 0) 170,
-      133,
-      0;
+    color: rgb(232, 0, 0);
+    border: 1px solid rgb(232, 0, 0);
     border-radius: 8px;
     padding: 0 6px;
     font-size: 11px;
-    background: color-mix(
-      in srgb,
-      rgb(170, 0, 0) 170,
-      133,
-      0 10%,
-      transparent
-    );
+    background: color-mix(in srgb, rgb(232, 0, 0) 10%, transparent);
   }
 
   .tasks {
