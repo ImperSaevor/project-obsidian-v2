@@ -915,6 +915,7 @@
     --acc-epic: var(--color-purple, #7b68ee);
     --acc-story: var(--color-green, #2bb673);
     --acc-task: var(--color-blue, #3ea8ff);
+    --acc-subtask: var(--color-grey, #939393);
   }
 
   a.internal-link.title.epic {

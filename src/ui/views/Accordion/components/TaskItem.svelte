@@ -1,10 +1,5 @@
 ﻿<script lang="ts">
-  import {
-    statusClass,
-    STATUS_META,
-    statusKeyFrom,
-    baseNameFrom,
-  } from "../status";
+  import { baseNameFrom } from "../status";
   import { hierarchyStore } from "../hierarchyStore";
   import type { DataFrame, DataRecord } from "src/lib/dataframe/dataframe";
   import type { ViewApi } from "src/lib/viewApi";
@@ -14,6 +9,7 @@
   import { createDataRecord } from "src/lib/dataApi";
   import { DataFieldName, pathToWikilink } from "../hierachy";
   import { handleHoverLink } from "../../helpers";
+  import Subtask from "./Subtasks.svelte";
 
   export let api: ViewApi;
   export let project: ProjectDefinition;
@@ -24,9 +20,9 @@
   export let task: DataRecord;
   export let openRecord: (r: DataRecord) => void;
   // export let onAddSubTask: (task: DataRecord) => void;
-  export let setStatus: (r: DataRecord, v: string) => void;
-  export let rename: (r: DataRecord, newName: string) => void;
-  export let edit: (r: DataRecord) => void;
+  // export let setStatus: (r: DataRecord, v: string) => void;
+  // export let rename: (r: DataRecord, newName: string) => void;
+  // export let edit: (r: DataRecord) => void;
 
   $: children = $hierarchyStore?.subtasks ?? new Map<string, DataRecord[]>();
 
@@ -52,19 +48,6 @@
   }
 
   function isDone() {
-    // if (task.length > 0) {
-    //   console.log(stories);
-
-    //   console.log(
-    //     "Checking Done for stories with every: ",
-    //     stories.every((s) => s.record?.values?.["Status"] === "Terminé")
-    //   );
-    //   console.log(
-    //     "Checking Done for stories with some: ",
-    //     stories.some((s) => s.record?.values?.["Status"] === "Terminé")
-    //   );
-    // }
-
     return task?.values?.["Status"] === "Terminé";
   }
 
@@ -103,6 +86,7 @@
 
 <details class="subtasks-wrap">
   <summary>
+    <!-- svelte-ignore a11y-mouse-events-have-key-events -->
     <a
       class="internal-link title_task"
       href={task.id}
@@ -134,24 +118,9 @@
       >
     </span>
   </summary>
-  <ul class="subtasks">
-    {#each getChildren() as st (st.id)}
-      <li class="subtask">
-        <a
-          href={st.id}
-          class="internal-link"
-          on:click|preventDefault={() => openRecord(st)}
-          on:mouseover={(event) => handleHoverLink(event, st.id)}
-        >
-          {baseNameFrom(st?.values?.["name"]?.toString() ?? "")}
-        </a>
-        <span
-          class={"status-dot " + statusClass(st)}
-          title={STATUS_META[statusKeyFrom(st)]?.label}
-        ></span>
-      </li>
-    {/each}
-  </ul>
+  {#each getChildren() as st (st.id)}
+    <Subtask {api} {project} {frame} task={st} {openRecord} />
+  {/each}
   <!-- <button class="btn tiny" on:click={() => onAddSubTask(task)}>+ SubTask</button> -->
 </details>
 
@@ -222,12 +191,6 @@
     display: grid;
     gap: 4px;
   }
-  .subtask {
-    padding: 4px 8px;
-    border-radius: 6px;
-    border: 1px dashed var(--background-modifier-border);
-    background: color-mix(in srgb, currentColor 8%, transparent);
-  }
   .chip {
     background: var(--background-modifier-form-field, #f2f2f2);
     border-radius: 12px;
@@ -283,28 +246,5 @@
     border: 1px solid var(--background-modifier-border);
     background: var(--background-modifier-form-field);
     cursor: pointer;
-  }
-  .status-dot {
-    display: inline-block;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    margin-left: 6px;
-    vertical-align: middle;
-  }
-  .status-todo {
-    background: var(--st-todo);
-  }
-  .status-doing {
-    background: var(--st-doing);
-  }
-  .status-done {
-    background: var(--st-done);
-  }
-  .status-backlog {
-    background: var(--st-backlog);
-  }
-  .status-bug {
-    background: var(--st-bug);
   }
 </style>

@@ -9,7 +9,7 @@
   import type { ViewApi } from "src/lib/viewApi";
   import type { ProjectDefinition } from "src/settings/settings";
   import { app } from "src/lib/stores/obsidian";
-  import { cleanWikiLink, DataFieldName, pathToWikilink, toWikiLink } from "../hierachy";
+  import { DataFieldName, pathToWikilink } from "../hierachy";
   import type { OnRecordClick } from "../../Board/components/Board/types";
   import { handleHoverLink } from "../../helpers";
 
@@ -88,6 +88,7 @@
   open
 >
   <summary>
+    <!-- svelte-ignore a11y-mouse-events-have-key-events -->
     <a
       class="internal-link title_epic"
       href={epic.id}
@@ -98,18 +99,20 @@
     </a>
     <span class="counts">
       {#if isDone()}
-      <span class="badge done">Done</span>
+        <span class="badge done">Done</span>
       {:else if isInProgress()}
-      <span class="badge inProgress">In Progress</span>
+        <span class="badge inProgress">In Progress</span>
       {:else if isInBugs()}
-      <span class="badge bugs">Bugs</span>
+        <span class="badge bugs">Bugs</span>
       {:else if isInBacklog()}
-      <span class="badge backlog">Backlog</span>
+        <span class="badge backlog">Backlog</span>
       {:else if isInTodo()}
-      <span class="badge todo">To Do</span>
+        <span class="badge todo">To Do</span>
       {/if}
       <span class="chip">Stories: {stories.length}</span>
-      <span class="chip">Tasks: {stories.reduce((n, s) => n + 0, 0) + tasksDirect.length}</span>
+      <span class="chip"
+        >Tasks: {stories.reduce((n, s) => n + 0, 0) + tasksDirect.length}</span
+      >
       <button class="btn tiny" on:click={() => addStory(epic)}>+ Story</button>
       <!-- <span class="badge done">Done</span> -->
     </span>
@@ -137,7 +140,7 @@
         <li>
           <span class="square" aria-hidden="true"></span>
           <a
-            href="#"
+            href={t.record.id}
             class="task-title"
             on:click|preventDefault={() => openRecord(t.record)}
           >
@@ -158,6 +161,7 @@
     --acc-epic: var(--color-purple);
     --acc-story: var(--color-green);
     --acc-task: var(--color-blue);
+    --acc-subtask: var(--color-grey, #939393);
   }
 
   /* Carte Epic */
@@ -241,7 +245,7 @@
     border-radius: 999px;
     color: var(--text-muted);
   }
-  .chip .dot {
+  /* .chip .dot {
     width: 8px;
     height: 8px;
     border-radius: 50%;
@@ -253,7 +257,7 @@
   }
   .chip.tasks {
     color: color-mix(in srgb, var(--acc-task) 80%, #333);
-  }
+  } */
 
   /* Badge de statut éventuel (Done, Blocked, etc.) */
   .badge.backlog {
@@ -320,7 +324,7 @@
   }
 
   /* Barre de progression (utilise --done et --total sur .epic) */
-  .epic .progress {
+  /* .epic .progress {
     --pct: calc((var(--done, 0) / max(var(--total, 1), 1)) * 100%);
     height: 6px;
     border-radius: 999px;
@@ -339,12 +343,12 @@
       var(--acc-epic)
     );
     transition: width 0.25s ease;
-  }
+  } */
 
   /* Corps (liste des stories/tasks) */
-  .epic .body {
+  /* .epic .body {
     padding: 6px 10px 10px 10px;
-  }
+  } */
 
   /* Liste des tâches immédiates de l’Epic (si tu en affiches) */
   .tasks {
@@ -378,11 +382,11 @@
   }
 
   /* Boutons d’action compacts à droite */
-  .actions {
+  /* .actions {
     justify-self: end;
     display: inline-flex;
     gap: 6px;
-  }
+  } */
   .btn.tiny {
     font-size: 12px;
     padding: 3px 8px;
@@ -419,12 +423,12 @@
   }
 
   /* Densité compacte si besoin: ajoute .dense sur un parent */
-  .dense .summary {
+  /* .dense .summary {
     padding: 6px 10px;
   }
   .dense .epic .progress {
     margin: 0 10px 6px;
-  }
+  } */
   .dense .tasks li {
     padding: 2px 0;
   }
