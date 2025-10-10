@@ -2,6 +2,7 @@
   // import { onMount } from "svelte";
   import type { StoryNode, TaskNode } from "../types";
   import StoryItem from "./StoryItem.svelte";
+  import ProgressBar from "./ProgressBar.svelte";
   import { baseNameFrom } from "../status";
   import type { DataFrame, DataRecord } from "src/lib/dataframe/dataframe";
   import { CreateNoteModal } from "src/ui/modals/createNoteModal";
@@ -10,7 +11,6 @@
   import type { ProjectDefinition } from "src/settings/settings";
   import { app } from "src/lib/stores/obsidian";
   import { DataFieldName, pathToWikilink } from "../hierachy";
-  import type { OnRecordClick } from "../../Board/components/Board/types";
   import { handleHoverLink } from "../../helpers";
 
   export let api: ViewApi;
@@ -19,6 +19,10 @@
   // export let value: Optional<DataValue>;
 
   $: ({ fields, records } = frame);
+  $: doneStories = stories.filter((s) =>
+    isDoneStatus(getStatus(s.record))
+  ).length;
+  $: totalStories = stories.length;
 
   export let epic: DataRecord;
   export let stories: StoryNode[] = [];
@@ -27,13 +31,28 @@
   // export let addStory: (epic: DataRecord) => void;
   // export let addTask: (story: DataRecord) => void;
   // export let addSubTask: (task: DataRecord) => void;
-  export let onRecordClick: OnRecordClick;
-  export let setStatus: (r: DataRecord, v: string) => void;
   export let rename: (r: DataRecord) => void;
-  export let edit: (r: DataRecord) => void;
   export let recordId: (r: DataRecord | string) => string;
 
+  // Utiliser "Status" OU "Statut" (robuste FR/EN)
+  const getStatus = (r: DataRecord) =>
+    (r?.values?.["Status"] ?? r?.values?.["Statut"] ?? "").toString();
+
+  const DONE_STATUSES = ["Terminé", "Done", "Fait"];
+  const isDoneStatus = (s: string) => DONE_STATUSES.includes(s);
+
+  function getDoneStories() {
+    console.log("Calculating done stories:", stories);
+    return stories.filter((s) => isDoneStatus(getStatus(s.record))).length;
+  }
+
+  function getTotalStories() {
+    console.log("Calculating total stories:", stories.length);
+    return stories.length;
+  }
+
   function isDone() {
+    console.log(stories);
     return (
       stories.every((s) => s.record?.values?.["Status"] === "Terminé") &&
       stories.length > 0
@@ -68,12 +87,29 @@
     );
   }
 
+  // function countDoneTotalTasks(
+  //   root: TaskNode[],
+  //   childrenOfTaskById: (id: string) => TaskNode[]
+  // ) {
+  //   let done = 0,
+  //     total = 0;
+  //   const stack = [...root];
+  //   while (stack.length) {
+  //     const t = stack.pop()!;
+  //     total++;
+  //     if (isDoneStatus(getStatus(t.record))) done++;
+  //     stack.push(...childrenOfTaskById(t.record.id));
+  //   }
+  //   return { done, total };
+  // }
+
   const addStory = async (args: any) => {
     new CreateNoteModal($app, project, (name, templatePath, project) => {
       api.addRecord(
         createDataRecord(name, project, {
           [DataFieldName.Project]: "Story",
           [DataFieldName.Parent]: pathToWikilink(epic.id),
+          [DataFieldName.Statut]: "Backlog",
         }),
         fields,
         templatePath
@@ -98,6 +134,14 @@
       {baseNameFrom(epic?.values?.["name"]?.toString() ?? "")}
     </a>
     <span class="counts">
+      {#if getTotalStories() > 0}
+        <ProgressBar
+          done={getDoneStories()}
+          total={getTotalStories()}
+          accent="var(--acc-epic)"
+          size="xs"
+        />
+      {/if}
       {#if isDone()}
         <span class="badge done">Done</span>
       {:else if isInProgress()}
@@ -110,9 +154,9 @@
         <span class="badge todo">To Do</span>
       {/if}
       <span class="chip">Stories: {stories.length}</span>
-      <span class="chip"
-        >Tasks: {stories.reduce((n, s) => n + 0, 0) + tasksDirect.length}</span
-      >
+      <span class="chip">
+        Tasks: {stories.reduce((n, s) => n + 0, 0) + tasksDirect.length}
+      </span>
       <button class="btn tiny" on:click={() => addStory(epic)}>+ Story</button>
       <!-- <span class="badge done">Done</span> -->
     </span>
@@ -121,11 +165,8 @@
   {#each stories as s (recordId(s.record))}
     <StoryItem
       story={s.record}
-      {onRecordClick}
       {openRecord}
-      {setStatus}
       {rename}
-      {edit}
       {recordId}
       {api}
       {project}

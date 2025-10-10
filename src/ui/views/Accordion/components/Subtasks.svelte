@@ -26,22 +26,10 @@
 
   function getChildren(): DataRecord[] {
     const normalizedId = pathToWikilink(task.id);
-    console.log("Normalized ID:", normalizedId); // Debug
-    console.log("Children keys:", Array.from(children.keys())); // Debug
-
     // Vérifie si la clé normalisée existe
-    if (children.has(normalizedId)) {
-      console.log("Found with normalized ID");
-      return children.get(normalizedId) ?? [];
-    }
-
+    if (children.has(normalizedId)) return children.get(normalizedId) ?? [];
     // Fallback : essaie avec l'ID brut (au cas où)
-    if (children.has(task.id)) {
-      console.log("Found with raw ID");
-      return children.get(task.id) ?? [];
-    }
-
-    // console.log("Not found");
+    if (children.has(task.id)) return children.get(task.id) ?? [];
     return [];
   }
 
@@ -71,6 +59,7 @@
         createDataRecord(name, project, {
           [DataFieldName.Project]: "SubTask",
           [DataFieldName.Parent]: pathToWikilink(task.id),
+          [DataFieldName.Statut]: "Backlog",
         }),
         fields,
         templatePath

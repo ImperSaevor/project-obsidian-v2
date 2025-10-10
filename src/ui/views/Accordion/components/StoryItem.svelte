@@ -3,7 +3,6 @@
   import TaskItem from "./TaskItem.svelte";
   import { hierarchyStore } from "../hierarchyStore";
   import type { DataFrame, DataRecord } from "src/lib/dataframe/dataframe";
-  import type { OnRecordClick } from "../../Board/components/Board/types";
   import { CreateNoteModal } from "src/ui/modals/createNoteModal";
   import { createDataRecord } from "src/lib/dataApi";
   import { DataFieldName, pathToWikilink } from "../hierachy";
@@ -18,14 +17,11 @@
 
   $: ({ fields, records } = frame);
 
-  export let onRecordClick: OnRecordClick;
   export let story: DataRecord;
   export let openRecord: (r: DataRecord) => void;
   // export let addTask: (story: DataRecord) => void;
   // export let addSubTask: (task: DataRecord) => void;
-  export let setStatus: (r: DataRecord, v: string) => void;
   export let rename: (r: DataRecord) => void;
-  export let edit: (r: DataRecord) => void;
   export let recordId: (r: DataRecord | string) => string;
 
   function updateStoryStatus(story: DataRecord, newStatus: string) {
@@ -166,6 +162,7 @@
         createDataRecord(name, project, {
           [DataFieldName.Project]: "Task",
           [DataFieldName.Parent]: pathToWikilink(story.id),
+          [DataFieldName.Statut]: "Backlog"
         }),
         fields,
         templatePath
@@ -180,6 +177,7 @@
 
 <details class="story" style="--done:{tasks.length}; --total:{tasks.length}">
   <summary>
+    <!-- svelte-ignore a11y-mouse-events-have-key-events -->
     <a
       class="internal-link title_story"
       href={story.id}
@@ -221,9 +219,6 @@
       <TaskItem
         task={t.record}
         {openRecord}
-        {setStatus}
-        {rename}
-        {edit}
         {api}
         {project}
         {frame}

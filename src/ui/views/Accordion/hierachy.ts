@@ -97,14 +97,14 @@ export function buildHierarchy(
   const parentToChildren = new Map<string, DataRecord[]>();
   for (const st of subtasks) {
     const pref = String(st?.values?.[DataFieldName.Parent] ?? "");
-    console.log("Subtask parent raw: ", pref);
+    // console.log("Subtask parent raw: ", pref);
 
     let key = env.resolveRecordId(pref);
-    console.log("Resolved key for subtask: ", key);
+    // console.log("Resolved key for subtask: ", key);
 
     if (key.endsWith("]]]]")) {
       key = key.replace("]]]]", "]]");
-      console.log("Final key for subtask: ", key);
+      // console.log("Final key for subtask: ", key);
     }
 
     const arr = parentToChildren.get(key) ?? [];
@@ -155,12 +155,12 @@ export function cleanWikiLink(input: string): string {
 
   // 3. Supprime l'extension .md (ou .markdown, case-insensitive)
   const withoutExtension = filePart?.replace(/\.(md|markdown)$/i, "");
-  console.log("Without extension: ", withoutExtension);
-  console.log("Final result: ", `[[${withoutExtension}]]`);
+  // console.log("Without extension: ", withoutExtension);
+  // console.log("Final result: ", `[[${withoutExtension}]]`);
 
   let finalResult = `[[${withoutExtension}]]`;
   if (finalResult.endsWith("]]]]")) finalResult = finalResult.replace("]]]]", "]]");
-  console.log("Final result after check: ", finalResult);
+  // console.log("Final result after check: ", finalResult);
 
   // 4. Retourne le résultat entre doubles crochets
   return finalResult;

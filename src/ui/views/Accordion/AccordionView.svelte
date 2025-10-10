@@ -11,8 +11,8 @@
   import type { ViewApi } from "src/lib/viewApi";
   import { CreateNoteModal } from "src/ui/modals/createNoteModal";
   import { createDataRecord } from "src/lib/dataApi";
-  import { EditNoteModal } from "src/ui/modals/editNoteModal";
-  import type { OnRecordClick } from "../Board/components/Board/types";
+  // import { EditNoteModal } from "src/ui/modals/editNoteModal";
+  // import type { OnRecordClick } from "../Board/components/Board/types";
   import ViewContent from "src/ui/components/Layout/ViewContent.svelte";
   import {
     ViewHeader,
@@ -60,7 +60,7 @@
       );
     }).open();
   };
-  const updateRecord = async (_r: any, _patch: any) => void 0;
+  // const updateRecord = async (_r: any, _patch: any) => void 0;
   const titleOf = (r: DataRecord) =>
     (r?.values?.["Title"] as string) ??
     (r?.values?.["Titre"] as string) ??
@@ -89,9 +89,9 @@
     return hierarchy.tasks.filter((t) => t.epicId === epicId && !t.storyId);
   }
 
-  async function setStatus(r: DataRecord, label: string) {
-    await updateRecord(r, { values: { [DataFieldName.Statut]: label } });
-  }
+  // async function setStatus(r: DataRecord, label: string) {
+  //   await updateRecord(r, { values: { [DataFieldName.Statut]: label } });
+  // }
   function addEpic() {
     createRecord({
       title: "Nouvel epic",
@@ -99,16 +99,16 @@
     });
   }
   const renameRecordInline = (r: DataRecord) => openRecord(r);
-  const editRecordInline = (r: DataRecord) => openRecord(r);
+  // const editRecordInline = (r: DataRecord) => openRecord(r);
 
-  const handleRecordClick: OnRecordClick = (record) => {
-    new EditNoteModal(
-      $app,
-      fields,
-      (record) => api.updateRecord(record, fields),
-      record
-    ).open();
-  };
+  // const handleRecordClick: OnRecordClick = (record) => {
+  //   new EditNoteModal(
+  //     $app,
+  //     fields,
+  //     (record) => api.updateRecord(record, fields),
+  //     record
+  //   ).open();
+  // };
 </script>
 
 <ViewLayout>
@@ -125,14 +125,11 @@
           stories={storiesOfEpic(recordId(epic))}
           tasksDirect={tasksOfEpicDirect(recordId(epic))}
           {openRecord}
-          {setStatus}
           rename={renameRecordInline}
-          edit={editRecordInline}
           {recordId}
           {api}
           {project}
           {frame}
-          onRecordClick={handleRecordClick}
         />
       {/each}
     </div>

@@ -28,18 +28,18 @@
 
   function getChildren(): DataRecord[] {
     const normalizedId = pathToWikilink(task.id);
-    console.log("Normalized ID:", normalizedId); // Debug
-    console.log("Children keys:", Array.from(children.keys())); // Debug
+    // console.log("Normalized ID:", normalizedId); // Debug
+    // console.log("Children keys:", Array.from(children.keys())); // Debug
 
     // Vérifie si la clé normalisée existe
     if (children.has(normalizedId)) {
-      console.log("Found with normalized ID");
+      // console.log("Found with normalized ID");
       return children.get(normalizedId) ?? [];
     }
 
     // Fallback : essaie avec l'ID brut (au cas où)
     if (children.has(task.id)) {
-      console.log("Found with raw ID");
+      // console.log("Found with raw ID");
       return children.get(task.id) ?? [];
     }
 
@@ -76,6 +76,7 @@
         createDataRecord(name, project, {
           [DataFieldName.Project]: "SubTask",
           [DataFieldName.Parent]: pathToWikilink(task.id),
+          [DataFieldName.Statut]: "Backlog"
         }),
         fields,
         templatePath
@@ -183,13 +184,6 @@
     box-shadow:
       0 1px 0 rgba(0, 0, 0, 0.04),
       0 8px 22px color-mix(in srgb, var(--acc-task) 18%, transparent);
-  }
-
-  .subtasks {
-    margin: 6px 0 0 0;
-    padding-left: 12px;
-    display: grid;
-    gap: 4px;
   }
   .chip {
     background: var(--background-modifier-form-field, #f2f2f2);

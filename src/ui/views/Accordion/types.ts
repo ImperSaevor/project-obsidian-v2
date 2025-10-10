@@ -13,17 +13,6 @@ export type AccordionConfig = {
 
 // Types minimaux compatibles avec ton code actuel
 export type Dict = Record<string, any>;
-
-// export type DataRecord = {
-//   statusLabel: string;
-//   title: string;
-//   id: string;
-//   name?: string;
-//   path?: string;
-//   values?: Dict;
-//   __childrenIndex?: Map<string, DataRecord[]>;
-// };
-
 export type Kind = "Epic" | "Story" | "Task" | "SubTask";
 
 export type StoryNode = { record: DataRecord; epicId?: string };
