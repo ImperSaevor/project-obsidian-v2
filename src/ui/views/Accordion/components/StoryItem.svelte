@@ -134,7 +134,7 @@
     $hierarchyStore?.tasks.filter((t) => t.storyId === recordId(story)) ?? [];
 </script>
 
-<details class="story" style="--done:{tasks.length}; --total:{tasks.length}">
+<details class="story">
   <summary>
     <!-- svelte-ignore a11y-mouse-events-have-key-events -->
     <a

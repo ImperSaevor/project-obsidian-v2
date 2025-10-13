@@ -144,11 +144,7 @@
   };
 </script>
 
-<details
-  class="epic"
-  style="--done:{stories.length}; --total:{stories.length}"
-  open
->
+<details class="epic">
   <summary>
     <!-- svelte-ignore a11y-mouse-events-have-key-events -->
     <a
