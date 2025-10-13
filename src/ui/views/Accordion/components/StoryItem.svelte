@@ -10,6 +10,7 @@
   import type { ViewApi } from "src/lib/viewApi";
   import { app } from "src/lib/stores/obsidian";
   import { handleHoverLink } from "../../helpers";
+  import { updateRecordValues } from "src/lib/datasources/helpers";
 
   export let api: ViewApi;
   export let project: ProjectDefinition;
@@ -23,6 +24,15 @@
   // export let addSubTask: (task: DataRecord) => void;
   export let rename: (r: DataRecord) => void;
   export let recordId: (r: DataRecord | string) => string;
+
+  function updateRecord(field: DataFieldName, value: any) {
+    api.updateRecord(
+      updateRecordValues(story, {
+        [field]: value,
+      }),
+      fields
+    );
+  }
 
   function updateStoryStatus(story: DataRecord, newStatus: string) {
     if (!story?.values) return;
@@ -40,24 +50,12 @@
   }
 
   function isDone() {
-    // if (tasks.length > 0) {
-    //   console.log(tasks);
-
-    //   console.log(
-    //     "Checking Done for tasks with every: ",
-    //     tasks.every((s) => s.record?.values?.["Status"] === "Terminé")
-    //   );
-    //   console.log(
-    //     "Checking Done for tasks with some: ",
-    //     tasks.some((s) => s.record?.values?.["Status"] === "Terminé")
-    //   );
-    // }
-
     if (
       tasks.every((s) => s.record?.values?.["Status"] === "Terminé") &&
       tasks.length > 0
     ) {
       updateStoryStatus(story, "Terminé");
+      updateRecord(DataFieldName.Statut, "Terminé");
       return true;
     } else {
       return false;
@@ -65,22 +63,12 @@
   }
 
   function isInProgress() {
-    // if (tasks.length > 0) {
-    //   console.log(
-    //     "Checking InProgress for tasks with every: ",
-    //     tasks.every((s) => s.record?.values?.["Status"] === "En cours")
-    //   );
-    //   console.log(
-    //     "Checking InProgress for tasks with some: ",
-    //     tasks.some((s) => s.record?.values?.["Status"] === "En cours")
-    //   );
-    // }
-
     if (
       tasks.some((s) => s.record?.values?.["Status"] === "En cours") &&
       tasks.length > 0
     ) {
       updateStoryStatus(story, "En cours");
+      updateRecord(DataFieldName.Statut, "En cours");
       return true;
     } else {
       return false;
@@ -88,22 +76,12 @@
   }
 
   function isInTodo() {
-    // if (tasks.length > 0) {
-    //   console.log(
-    //     "Checking todo for tasks with every: ",
-    //     tasks.every((s) => s.record?.values?.["Status"] === "À faire")
-    //   );
-    //   console.log(
-    //     "Checking todo for tasks with some: ",
-    //     tasks.some((s) => s.record?.values?.["Status"] === "À faire")
-    //   );
-    // }
-
     if (
       tasks.some((s) => s.record?.values?.["Status"] === "À faire") &&
       tasks.length > 0
     ) {
       updateStoryStatus(story, "À faire");
+      updateRecord(DataFieldName.Statut, "À faire");
       return true;
     } else {
       return false;
@@ -111,22 +89,12 @@
   }
 
   function isInBugs() {
-    // if (tasks.length > 0) {
-    //   console.log(
-    //     "Checking bugs for tasks with every: ",
-    //     tasks.every((s) => s.record?.values?.["Status"] === "Bugs")
-    //   );
-    //   console.log(
-    //     "Checking bugs for tasks with some: ",
-    //     tasks.some((s) => s.record?.values?.["Status"] === "Bugs")
-    //   );
-    // }
-
     if (
       tasks.some((s) => s.record?.values?.["Status"] === "Bugs") &&
       tasks.length > 0
     ) {
       updateStoryStatus(story, "Bugs");
+      updateRecord(DataFieldName.Statut, "Bugs");
       return true;
     } else {
       return false;
@@ -134,22 +102,12 @@
   }
 
   function isInBacklog() {
-    // if (tasks.length > 0) {
-    //   console.log(
-    //     "Checking Backlog for tasks with every: ",
-    //     tasks.every((s) => s.record?.values?.["Status"] === "Backlog")
-    //   );
-    //   console.log(
-    //     "Checking Backlog for tasks with some: ",
-    //     tasks.some((s) => s.record?.values?.["Status"] === "Backlog")
-    //   );
-    // }
-
     if (
       tasks.some((s) => s.record?.values?.["Status"] === "Backlog") &&
       tasks.length > 0
     ) {
       updateStoryStatus(story, "Backlog");
+      updateRecord(DataFieldName.Statut, "Backlog");
       return true;
     } else {
       return false;
@@ -162,7 +120,7 @@
         createDataRecord(name, project, {
           [DataFieldName.Project]: "Task",
           [DataFieldName.Parent]: pathToWikilink(story.id),
-          [DataFieldName.Statut]: "Backlog"
+          [DataFieldName.Statut]: "Backlog",
         }),
         fields,
         templatePath
@@ -216,13 +174,7 @@
 
   <ul class="tasks">
     {#each tasks ?? [] as t (recordId(t.record))}
-      <TaskItem
-        task={t.record}
-        {openRecord}
-        {api}
-        {project}
-        {frame}
-      />
+      <TaskItem task={t.record} {openRecord} {api} {project} {frame} />
     {/each}
   </ul>
 </details>

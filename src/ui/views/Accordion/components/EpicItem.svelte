@@ -12,6 +12,7 @@
   import { app } from "src/lib/stores/obsidian";
   import { DataFieldName, pathToWikilink } from "../hierachy";
   import { handleHoverLink } from "../../helpers";
+  import { updateRecordValues } from "src/lib/datasources/helpers";
 
   export let api: ViewApi;
   export let project: ProjectDefinition;
@@ -19,10 +20,6 @@
   // export let value: Optional<DataValue>;
 
   $: ({ fields, records } = frame);
-  $: doneStories = stories.filter((s) =>
-    isDoneStatus(getStatus(s.record))
-  ).length;
-  $: totalStories = stories.length;
 
   export let epic: DataRecord;
   export let stories: StoryNode[] = [];
@@ -51,40 +48,69 @@
     return stories.length;
   }
 
+  function updateRecord(field: DataFieldName, value: any) {
+    api.updateRecord(
+      updateRecordValues(epic, {
+        [field]: value,
+      }),
+      fields
+    );
+  }
+
   function isDone() {
-    console.log(stories);
-    return (
+    if (
       stories.every((s) => s.record?.values?.["Status"] === "Terminé") &&
       stories.length > 0
-    );
+    ) {
+      updateRecord(DataFieldName.Statut, "Terminé");
+      return true;
+    }
+    return false;
   }
 
   function isInProgress() {
-    return (
+    if (
       stories.some((s) => s.record?.values?.["Status"] === "En cours") &&
       stories.length > 0
-    );
+    ) {
+      updateRecord(DataFieldName.Statut, "En cours");
+      return true;
+    }
+    return false;
   }
 
   function isInTodo() {
-    return (
+    if (
       stories.some((s) => s.record?.values?.["Status"] === "À faire") &&
       stories.length > 0
-    );
+    ) {
+      updateRecord(DataFieldName.Statut, "À faire");
+      return true;
+    }
+    return false;
   }
 
   function isInBugs() {
-    return (
+    if (
       stories.some((s) => s.record?.values?.["Status"] === "Bugs") &&
       stories.length > 0
-    );
+    ) {
+      updateRecord(DataFieldName.Statut, "Bugs");
+      return true;
+    }
+    return false;
   }
 
   function isInBacklog() {
-    return (
-      stories.some((s) => s.record?.values?.["Status"] === "Backlog") &&
+    if (
+      (stories.some((s) => s.record?.values?.["Status"] === "Backlog") ||
+        stories.some((s) => s.record?.values?.["Status"] == null)) &&
       stories.length > 0
-    );
+    ) {
+      updateRecord(DataFieldName.Statut, "Backlog");
+      return true;
+    }
+    return false;
   }
 
   // function countDoneTotalTasks(
