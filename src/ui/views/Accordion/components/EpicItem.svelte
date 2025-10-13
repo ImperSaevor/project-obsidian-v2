@@ -178,6 +178,8 @@
         <span class="badge backlog">Backlog</span>
       {:else if isInTodo()}
         <span class="badge todo">To Do</span>
+      {:else}
+        <span class="badge backlog">Backlog</span>
       {/if}
       <span class="chip">Stories: {stories.length}</span>
       <span class="chip">

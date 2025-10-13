@@ -103,7 +103,8 @@
 
   function isInBacklog() {
     if (
-      tasks.some((s) => s.record?.values?.["Status"] === "Backlog") &&
+      (tasks.some((s) => s.record?.values?.["Status"] === "Backlog") ||
+        tasks.some((s) => s.record?.values?.["Status"] == null)) &&
       tasks.length > 0
     ) {
       updateStoryStatus(story, "Backlog");
@@ -156,6 +157,8 @@
           <span class="badge backlog">Backlog</span>
         {:else if isInTodo()}
           <span class="badge todo">To Do</span>
+        {:else}
+          <span class="badge backlog">Backlog</span>
         {/if}
         <span class="chip">Tasks: {tasks.length}</span>
       </span>

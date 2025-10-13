@@ -13,6 +13,7 @@
   import { createDataRecord } from "src/lib/dataApi";
   import { app } from "src/lib/stores/obsidian";
   import Self from "./Subtasks.svelte";
+  import { updateRecordValues } from "src/lib/datasources/helpers";
 
   export let api: ViewApi;
   export let project: ProjectDefinition;
@@ -33,24 +34,73 @@
     return [];
   }
 
+  function updateRecord(field: DataFieldName, value: any) {
+    api.updateRecord(
+      updateRecordValues(task, {
+        [field]: value,
+      }),
+      fields
+    );
+  }
+
   function isDone() {
-    return task?.values?.["Status"] === "Terminé";
+    if (
+      getChildren().length > 0
+        ? getChildren().every((t) => t?.values?.["Status"] === "Terminé")
+        : task?.values?.["Status"] === "Terminé"
+    ) {
+      updateRecord(DataFieldName.Statut, "Terminé");
+      return true;
+    }
+    return false;
   }
 
   function isInProgress() {
-    return task?.values?.["Status"] === "En cours";
+    if (
+      getChildren().length > 0
+        ? getChildren().some((t) => t?.values?.["Status"] === "En cours")
+        : task?.values?.["Status"] === "En cours"
+    ) {
+      updateRecord(DataFieldName.Statut, "En cours");
+      return true;
+    }
+    return false;
   }
 
   function isInTodo() {
-    return task?.values?.["Status"] === "À faire";
+    if (
+      getChildren().length > 0
+        ? getChildren().some((t) => t?.values?.["Status"] === "À faire")
+        : task?.values?.["Status"] === "À faire"
+    ) {
+      updateRecord(DataFieldName.Statut, "À faire");
+      return true;
+    }
+    return false;
   }
 
   function isInBugs() {
-    return task?.values?.["Status"] === "Bugs";
+    if (
+      getChildren().length > 0
+        ? getChildren().some((t) => t?.values?.["Status"] === "Bugs")
+        : task?.values?.["Status"] === "Bugs"
+    ) {
+      updateRecord(DataFieldName.Statut, "Bugs");
+      return true;
+    }
+    return false;
   }
 
   function isInBacklog() {
-    return task?.values?.["Status"] === "Backlog";
+    if (
+      getChildren().length > 0
+        ? getChildren().some((t) => t?.values?.["Status"] === "Backlog")
+        : task?.values?.["Status"] === "Backlog"
+    ) {
+      updateRecord(DataFieldName.Statut, "Backlog");
+      return true;
+    }
+    return false;
   }
 
   const addSubTask = async (args: any) => {
@@ -90,6 +140,8 @@
         <span class="badge backlog">Backlog</span>
       {:else if isInTodo()}
         <span class="badge todo">To Do</span>
+      {:else}
+        <span class="badge backlog">Backlog</span>
       {/if}
       <span class="chip">
         {getChildren().length > 0 ? getChildren().length : 0}

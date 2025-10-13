@@ -6,7 +6,7 @@ export enum DataFieldName {
   Type = "Type",
   Project = "Projet",
   Parent = "Parent",
-  Statut = "Statut",
+  Statut = "Status",
 }
 
 export function kindOf(r: DataRecord): "Epic" | "Story" | "Task" | "SubTask" {
@@ -56,7 +56,7 @@ export function buildHierarchy(
 
   // 3) Rattacher Story → Epic
   const storiesOut: StoryNode[] = stories.map((s) => {
-    const parentRaw = firstRef(s.values?.["Parent"]) ?? firstRef(s.values?.["Project"]);
+    const parentRaw = firstRef(s.values?.[DataFieldName.Parent]) ?? firstRef(s.values?.["Project"]);
     const tried = keyVariants(parentRaw, env);
     const epicId = (() => {
       const match = tried.find((v) => idxEpic.has(v));
